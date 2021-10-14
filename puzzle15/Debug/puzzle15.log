@@ -1,0 +1,8 @@
+﻿  puzzle.cpp
+C:\Users\Галушко Дмитрий\source\repos\puzzle15\puzzle15\puzzle.cpp(124,24): warning C4018: >: несоответствие типов со знаком и без знака
+C:\Users\Галушко Дмитрий\source\repos\puzzle15\puzzle15\puzzle.cpp(149,35): warning C4018: >: несоответствие типов со знаком и без знака
+C:\Users\Галушко Дмитрий\source\repos\puzzle15\puzzle15\puzzle.cpp(158,37): warning C4018: <: несоответствие типов со знаком и без знака
+C:\Users\Галушко Дмитрий\source\repos\puzzle15\puzzle15\puzzle.cpp(162,24): warning C4018: >: несоответствие типов со знаком и без знака
+C:\Users\Галушко Дмитрий\source\repos\puzzle15\puzzle15\puzzle.cpp(195,6): warning C4101: depth: неиспользованная локальная переменная
+C:\Users\Галушко Дмитрий\source\repos\puzzle15\puzzle15\puzzle.cpp(129): warning C4715: bfs: значение возвращается не при всех путях выполнения
+  puzzle15.vcxproj -> C:\Users\Галушко Дмитрий\source\repos\puzzle15\Debug\puzzle15.exe
