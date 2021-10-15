@@ -6,7 +6,7 @@
 #include <queue>
 #include <cstdlib>
 #include <sstream>
-
+#include <set>
 using namespace std;
 
 const string solution = "123456789ABCDEF0";
@@ -15,6 +15,18 @@ struct Node {
 	string state;
 	string path;
 };
+
+int manchDistanceHeuristic(string state) {
+	int points = 0;
+	for (size_t i = 0; i < solution.length(); i++)
+	{
+		int perfectLoc = solution.find(state[i]);
+		int actualLoc = i;
+		int distance = abs(perfectLoc - actualLoc) / 4 + abs(perfectLoc - actualLoc) % 4;
+		points += distance;
+	}
+	return points;
+}
 
 bool winCheck(Node a) {
 	return (a.state.compare(solution) == 0);
@@ -68,28 +80,28 @@ void generateSuccessors(Node curNode, vector<Node>& possible_paths) {
 		Node newNode;
 		newNode.state = swap(curNode.state, loc, loc - 4);
 		newNode.path = curNode.path;
-		newNode.path += "↑";
+		newNode.path += "u";
 		possible_paths.push_back(newNode);
 	}
 	if (loc < 12) {
 		Node newNode;
 		newNode.state = swap(curNode.state, loc, loc + 4);
 		newNode.path = curNode.path;
-		newNode.path += '↓';
+		newNode.path += "d";
 		possible_paths.push_back(newNode);
 	}
 	if (loc % 4 < 3) {
 		Node newNode;
 		newNode.state = swap(curNode.state, loc, loc + 1);
 		newNode.path = curNode.path;
-		newNode.path += '→';
+		newNode.path += "r";
 		possible_paths.push_back(newNode);
 	}
 	if (loc % 4 > 1) {
 		Node newNode;
 		newNode.state = swap(curNode.state, loc, loc - 1);
 		newNode.path = curNode.path;
-		newNode.path += '←';
+		newNode.path += "l";
 		possible_paths.push_back(newNode);
 	}
 }
@@ -156,9 +168,11 @@ Node ids(Node startNode) {
 	return startNode;
 }
 
+
 int main(int argc) {
 	Node startNode;
-	startNode.state = "1234067859ACDEBF";
+	startNode.state = "16245A3709C8DEBF";
+	manchDistanceHeuristic(startNode.state);
 	if (winCheck(startNode)) {
 		cout << "0" << endl;
 		return 0;
@@ -169,14 +183,14 @@ int main(int argc) {
 	}
 	Node result;
 
-	cout << "BFS" << endl;
-	result = bfs(startNode);
+	//cout << "BFS" << endl;
+	//result = bfs(startNode);
 		
-	/*cout << "DFS" << endl;
-	result = dfs(startNode);
+	//cout << "DFS" << endl;
+	//result = dfs(startNode);
 	
 	cout << "IDS" << endl;
-	result = ids(startNode);*/
+	result = ids(startNode);
 
 	cout << "path count: " << result.path.length() << endl;
 	cout << "path: " << result.path << endl;
