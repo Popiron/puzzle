@@ -7,6 +7,9 @@
 #include <cstdlib>
 #include <sstream>
 #include <set>
+#include <unordered_map>
+using namespace std;
+using namespace std;
 using namespace std;
 
 const string solution = "123456789ABCDEF0";
@@ -22,38 +25,6 @@ struct MancNode {
 	int heuristic;
 };
 
-int rowByChar(string state,char c) {
-	int loc = state.find(c);
-	return loc / 4;
-}
-
-bool belongsToOneRow(string state, char c1, char c2) {
-	return rowByChar(state, c1) == rowByChar(state, c2);
-}
-
-bool goalPositionsInOneRow(char c1, char c2) {
-	return ((solution.find(c1))/4) == ((solution.find(c2))/4);
-}
-
-int columnByChar(string state, char c) {
-	int loc = state.find(c);
-	return loc % 4;
-}
-
-bool belongsToOneColumn(string state, char c1, char c2) {
-	return columnByChar(state, c1) == columnByChar(state, c2);
-}
-
-bool goalPositionsInOneColumn(char c1, char c2) {
-	return ((solution.find(c1)) % 4) == ((solution.find(c2)) % 4);
-}
-
-int distanceToPerfectLoc(string state, char c) {
-	int perfectLoc = solution.find(c);
-	int actualLoc = state.find(c);
-	return abs(perfectLoc - actualLoc) / 4 + abs(perfectLoc - actualLoc) % 4;
-}
-
 int getInt16(char c) {
 	std::stringstream ssX;
 	int x;
@@ -62,70 +33,50 @@ int getInt16(char c) {
 	return x;
 }
 
-bool isLinearConflictRow(string state, char i, char j) {
-	if (!belongsToOneRow(state, i, j))
-		return false;
-	
-	if (!goalPositionsInOneRow(i, j))
-		return false;
-
-	if (state.find(i) > state.find(j))
-		return false;
-
-	if ((solution.find(i) - state.find(j)) != 1)
-		return false;
-
-	if ((solution.find(j) != state.find(i)))
-		return false;
-
-	return true;
-}
-
-
-bool isLinearConflictColumn(string state, char i, char j) {
-	if (!belongsToOneColumn(state, i, j))
-		return false;
-
-	if (!goalPositionsInOneColumn(i, j))
-		return false;
-
-	if (state.find(i) > state.find(j))
-		return false;
-
-	if ((solution.find(i) - state.find(j)) != 4)
-		return false;
-
-	if ((solution.find(j) != state.find(i)))
-		return false;
-
-
-	return true;
-}
-
-
-
 int linearConflictHeuristic(string state) {
-	int heur = 0;
-	for (int i = 0; i < 4; i++)
+	int distance = 0;
+	for (size_t i = 0; i < 4; i++)
 	{
-		for (int j = 0; j < 4; j++) {
-			
-			if (isLinearConflictRow(state, state[i], state[j]))
-				heur++;
-			if (isLinearConflictColumn(state, state[i], state[j]))
-				heur++;
+		for (size_t j = 0; j < 4; j++)
+		{
+			int curr = getInt16(state[4 * i + j]);
+			if (curr == 0)
+				continue;
+			if (i == (curr - 1) / 4)
+				for (int k = j + 1; k < 4; k++)
+				{
+					int next = getInt16(state[4 * i + k]);
+					if (next == 0)
+						continue;
+					if ((next - 1) / 4 == i && curr > next)
+						distance += 2;
+				}
+			if (j == (curr - 1) % 4)
+			{
+				for (int k = i + 1; k < 4; k++)
+				{
+					int next = getInt16(state[4 * k + j]);
+					if (next == 0)
+						continue;
+					if ((next - 1) % 4 == j && curr > next)
+						distance += 2;
+				}
+			}
 		}
-	}
-	return heur*2;
+		}
+	return distance;
 }
 
 int manchDistanceHeuristic(string state) {
 	int points = 0;
 	for (size_t i = 0; i < solution.length(); i++)
 	{
+		if (state[i] == '0')
+			continue;
 		int perfectLoc = solution.find(state[i]);
 		int actualLoc = i;
-		int distance = abs(perfectLoc - actualLoc) / 4 + abs(perfectLoc - actualLoc) % 4;
+		int colDistance = abs(perfectLoc/4 - actualLoc/4);
+		int distance = colDistance + abs(perfectLoc%4 - actualLoc%4);
 		points += distance;
 	}
 	return points;
@@ -135,7 +86,7 @@ bool winCheck(string state) {
 	return (state.compare(solution) == 0);
 }
 
-string swap(string state, unsigned int a, unsigned int b) {
+string swap(string state, size_t a, size_t b) {
 	string newState(state);
 	string temp = newState.substr(a, 1);
 	newState[a] = newState[b];
@@ -178,21 +129,22 @@ bool canBeSolved(string initData) {
 }
 
 void manchGenerateSuccessor(MancNode curNode, vector<MancNode>& possible_paths) {
-	int loc = curNode.state.find("0");
+	int loc = curNode.state.find('0');
+
 	if (loc > 3) {
 		MancNode newNode;
 		newNode.state = swap(curNode.state, loc, loc - 4);
 		newNode.path = curNode.path;
-		newNode.path += "u";
-		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state) + linearConflictHeuristic(newNode.state);
+		newNode.path += 'u';
+		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state)+ linearConflictHeuristic(newNode.state);
 		possible_paths.push_back(newNode);
 	}
 	if (loc < 12) {
 		MancNode newNode;
 		newNode.state = swap(curNode.state, loc, loc + 4);
 		newNode.path = curNode.path;
-		newNode.path += "d";
-		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state) + linearConflictHeuristic(newNode.state);
+		newNode.path += 'd';
+		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state)+ linearConflictHeuristic(newNode.state);
 
 		possible_paths.push_back(newNode);
 	}
@@ -200,8 +152,8 @@ void manchGenerateSuccessor(MancNode curNode, vector<MancNode>& possible_paths) 
 		MancNode newNode;
 		newNode.state = swap(curNode.state, loc, loc + 1);
 		newNode.path = curNode.path;
-		newNode.path += "r";
-		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state) + linearConflictHeuristic(newNode.state);
+		newNode.path += 'r';
+		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state)+ linearConflictHeuristic(newNode.state);
 
 		possible_paths.push_back(newNode);
 	}
@@ -209,8 +161,8 @@ void manchGenerateSuccessor(MancNode curNode, vector<MancNode>& possible_paths) 
 		MancNode newNode;
 		newNode.state = swap(curNode.state, loc, loc - 1);
 		newNode.path = curNode.path;
-		newNode.path += "l";
-		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state) + linearConflictHeuristic(newNode.state);
+		newNode.path += 'l';
+		newNode.heuristic = newNode.path.size() + manchDistanceHeuristic(newNode.state)+ linearConflictHeuristic(newNode.state);
 
 		possible_paths.push_back(newNode);
 	}
@@ -281,26 +233,34 @@ MancNode aStar(Node startNode) {
 	MancNode manchStartNode;
 	manchStartNode.state = startNode.state;
 	manchStartNode.path = startNode.path;
-	manchStartNode.heuristic = manchStartNode.path.size() + manchDistanceHeuristic(startNode.state) + linearConflictHeuristic(startNode.state);
+	manchStartNode.heuristic = manchStartNode.path.size()+ manchDistanceHeuristic(startNode.state) + linearConflictHeuristic(startNode.state);
+
 	priority_queue<MancNode,vector<MancNode>,CompareHeuristic> frontier;
 	frontier.push(manchStartNode);
-	map<string, int> expanded;
+
+	unordered_map<string, size_t> expanded;
+
 	while (!frontier.empty()) {
+
 		MancNode curNode = frontier.top();
-		//cout << curNode.heuristic << endl;
 		frontier.pop();
+
 		expanded[curNode.state] = 1;
+
 		vector<MancNode> nextNodes;
 		manchGenerateSuccessor(curNode, nextNodes);
-		for (unsigned int i = 0; i < nextNodes.size(); i++) {
+
+		for (size_t i = 0; i < nextNodes.size(); i++) {
+
 			if (winCheck(nextNodes[i].state)) {
 				return nextNodes[i];
 			}
 			if (expanded.find(nextNodes[i].state) != expanded.end()) {
 				continue;
 			}
-			
+
 			frontier.push(nextNodes[i]);
+
 		}
 
 	}
@@ -349,7 +309,7 @@ Node ids(Node startNode) {
 
 int main(int argc) {
 	Node startNode;
-	startNode.state = "75AB2C416D389F0E";
+	startNode.state = "DBE87A2C91F65034";
 	manchDistanceHeuristic(startNode.state);
 	if (winCheck(startNode.state)) {
 		cout << "0" << endl;
