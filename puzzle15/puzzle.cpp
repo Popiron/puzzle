@@ -227,7 +227,14 @@ struct CompareHeuristic {
 	{
 		return p1.heuristic > p2.heuristic;
 	}
-};
+} ;
+
+struct CompareHeuristicIDAstar {
+	bool operator()(MancNode const& p1, MancNode const& p2)
+	{
+		return p1.heuristic < p2.heuristic;
+	}
+} myCompare;
 
 MancNode aStar(Node startNode) {
 	MancNode manchStartNode;
@@ -265,6 +272,71 @@ MancNode aStar(Node startNode) {
 
 	}
 }
+
+tuple<MancNode, int> searchIDAstar(stack<MancNode>& path, unordered_map<string, int>& visited, int cost, int bound)
+{
+	MancNode curr = path.top();
+	int f = curr.heuristic;
+	if (f > bound)
+		return { curr,0 };
+	if (winCheck(curr.state))
+		return { curr,1 };
+	MancNode min;
+	min.heuristic = INT_MAX;
+	min.path = "";
+	min.state = "";
+	vector<MancNode> sucessors;
+	manchGenerateSuccessor(curr, sucessors);
+	sort(sucessors.begin(), sucessors.end(), myCompare);
+	for (size_t i = 0; i < sucessors.size(); i++)
+	{
+		if (visited.find(sucessors[i].state) == visited.end()) {
+			path.push(sucessors[i]);
+			visited[sucessors[i].state] = 1;
+			tuple<MancNode, int> t = searchIDAstar(path, visited, f, bound);
+			if (get<1>(t) == 1) {
+				return t;
+			}
+			MancNode node = get<0>(t);
+			if (node.heuristic < min.heuristic ) {
+				min = node;
+			}
+			visited.erase(path.top().state);
+			path.pop();
+		}
+	}
+	return { min, 0 };
+}
+
+
+MancNode ISolve(Node start)
+{
+	MancNode manchStartNode;
+	manchStartNode.state = start.state;
+	manchStartNode.path = start.path;
+	manchStartNode.heuristic = manchStartNode.path.size() + manchDistanceHeuristic(start.state) + linearConflictHeuristic(start.state);
+	int bound = manchStartNode.heuristic;
+	stack<MancNode> path;
+	path.push(manchStartNode);
+	unordered_map<string, int> visited;
+	visited[start.state] = 1;
+	while (true)
+	{
+		tuple<MancNode,int> t = searchIDAstar(path,visited, 0, bound);
+		if (get<1>(t) == 1)
+		{
+			return get<0>(t);
+		}
+		MancNode node = get<0>(t);
+		bound = node.heuristic;
+	}
+}
+
+int IDaStarCheapestPathCoast(Node node) {
+	return manchDistanceHeuristic(node.state);
+}
+
+
 
 Node dfs(Node startNode, int maxDepth = 80) {
 	stack<Node> frontier;
@@ -307,9 +379,11 @@ Node ids(Node startNode) {
 }
 
 
+
+
 int main(int argc) {
 	Node startNode;
-	startNode.state = "DBE87A2C91F65034";
+	startNode.state = "FE169B4C0A73D852";
 	manchDistanceHeuristic(startNode.state);
 	if (winCheck(startNode.state)) {
 		cout << "0" << endl;
@@ -333,9 +407,13 @@ int main(int argc) {
 	//cout << "path count: " << result.path.length() << endl;
 	//cout << "path: " << result.path << endl;
 
-	cout << "A*" << endl;
-	MancNode mancResult = aStar(startNode);
+	//cout << "A*" << endl;
+	//MancNode mancResult = aStar(startNode);
 	//
+
+	cout << "IdA*" << endl;
+	MancNode mancResult = ISolve(startNode);
+
 	cout << "path count: " << mancResult.path.length() << endl;
 	cout << "path: " << mancResult.path << endl;
 	return 0;
