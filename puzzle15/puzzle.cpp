@@ -309,7 +309,7 @@ tuple<MancNode, int> searchIDAstar(stack<MancNode>& path, unordered_map<string, 
 }
 
 
-MancNode ISolve(Node start)
+MancNode idaStar(Node start)
 {
 	MancNode manchStartNode;
 	manchStartNode.state = start.state;
@@ -378,12 +378,21 @@ Node ids(Node startNode) {
 	return startNode;
 }
 
+enum Algo {
+	BFS,
+	DFS,
+	IDS,
+	Astar,
+	IDAstar,
+};
 
-
+const string initState = "1234067859ACDEBF";
 
 int main(int argc) {
 	Node startNode;
-	startNode.state = "FE169B4C0A73D852";
+
+	startNode.state = initState;
+
 	manchDistanceHeuristic(startNode.state);
 	if (winCheck(startNode.state)) {
 		cout << "0" << endl;
@@ -393,28 +402,58 @@ int main(int argc) {
 		cout << "No solution" << endl;
 		return 0;
 	}
-	Node result;
+	Algo algo = IDAstar;
 
-	//cout << "BFS" << endl;
-	//result = bfs(startNode);
+	switch (algo)
+	{
+	case BFS: {
+		cout << "BFS" << endl;
+		Node result;
+		result = bfs(startNode);
+		cout << "path count: " << result.path.length() << endl;
+		cout << "path: " << result.path << endl;
+		break;
+	}
+	case DFS: {
+		cout << "DFS" << endl;
+		Node result;
+		result = dfs(startNode);
+		cout << "path count: " << result.path.length() << endl;
+		cout << "path: " << result.path << endl;
+		break;
+	}
+
+	case IDS: {
+		cout << "IDS" << endl;
+		Node result;
+		result = ids(startNode);
+		cout << "path count: " << result.path.length() << endl;
+		cout << "path: " << result.path << endl;
+		break;
+	}
+
+	case Astar:
+	{
+		cout << "A*" << endl;
+		MancNode mancResult;
+		mancResult = aStar(startNode);
+		cout << "path count: " << mancResult.path.length() << endl;
+		cout << "path: " << mancResult.path << endl;
+		break;
+	}
 		
-	//cout << "DFS" << endl;
-	//result = dfs(startNode);
-	
-	//cout << "IDS" << endl;
-	//result = ids(startNode);
+	case IDAstar: {
+		cout << "IdA*" << endl;
+		MancNode mancResult;
+		mancResult = idaStar(startNode);
+		cout << "path count: " << mancResult.path.length() << endl;
+		cout << "path: " << mancResult.path << endl;
+		break;
+	}
+		
+	default:
+		break;
+	}
 
-	//cout << "path count: " << result.path.length() << endl;
-	//cout << "path: " << result.path << endl;
-
-	//cout << "A*" << endl;
-	//MancNode mancResult = aStar(startNode);
-	//
-
-	cout << "IdA*" << endl;
-	MancNode mancResult = ISolve(startNode);
-
-	cout << "path count: " << mancResult.path.length() << endl;
-	cout << "path: " << mancResult.path << endl;
 	return 0;
 }
