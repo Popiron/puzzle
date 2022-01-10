@@ -261,7 +261,7 @@ int main(int argc) {
 		return 0;
 	}
 
-	Algo algo = IDS;
+	Algo algo = DFS;
 
 	switch (algo)
 	{
